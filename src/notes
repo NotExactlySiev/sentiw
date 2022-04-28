@@ -1,0 +1,25 @@
+Ok. I should have thought more about how this whole thing should work
+We should treat the NES struct as the owner of every part in the
+console, and only borrow references to those devices when the current
+device needs it. e.g. we have the ram struct, which has its own read
+and write methods and such, and we borrow it to the cpu when we're
+running the cpu. when we're done with the cpu and are doing ppu emu
+for example, then ram ownership returns to the NES struct and it is
+borrowed to the PPU if it's needed.
+
+the memory module right now does:
+- ram
+- decoding the mapper
+- loading the cart
+- mapping of the cpu memory
+
+i'm gonna write a new memory module for the cpu that only takes care
+of the mapping of the memory. it borrows every piece of memory it
+needs before we start emulating the cpu and returns all of them when
+we're done. same thing should go for the ppu, it also has a memory
+module that does the same thing when we're emulating the ppu.
+thus it should be customizable and allow for arbitrary mappings of the
+address space. something like the interconnect in rustation.
+it contains some ranges that each have an enum associated with them
+containing whatever memory the addresses in that range are associated
+with.
